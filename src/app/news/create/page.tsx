@@ -152,7 +152,7 @@ export default function CreateNews() {
     // If the upload succeeded but the object is not publicly reachable, throw a helpful error
     if (typeof data.accessible !== "undefined" && !data.accessible) {
       throw new Error(
-        "File berhasil diunggah ke R2, tetapi belum dapat diakses secara publik. Periksa konfigurasi R2_PUBLIC_URL atau Worker yang men-serve bucket."
+        "File berhasil diunggah ke R2, tetapi belum dapat diakses secara publik. Periksa konfigurasi R2_PUBLIC_URL atau Worker yang men-serve bucket.",
       );
     }
 
@@ -219,7 +219,7 @@ export default function CreateNews() {
   };
 
   const handleInputChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ): void => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -310,7 +310,7 @@ export default function CreateNews() {
       .then((permissionStatus) => {
         if (permissionStatus.state === "denied") {
           handleError(
-            "Izin lokasi ditolak. Silakan aktifkan izin lokasi di browser."
+            "Izin lokasi ditolak. Silakan aktifkan izin lokasi di browser.",
           );
         } else if (["granted", "prompt"].includes(permissionStatus.state)) {
           if (!navigator.geolocation) {
@@ -330,7 +330,7 @@ export default function CreateNews() {
               enableHighAccuracy: true,
               timeout: 10000,
               maximumAge: 0,
-            }
+            },
           );
         }
       });
@@ -631,21 +631,21 @@ export default function CreateNews() {
                         disabled
                         value={
                           label === "Latitude"
-                            ? lokasi?.lat ?? "-"
+                            ? (lokasi?.lat ?? "-")
                             : label === "Longitude"
-                            ? lokasi?.long ?? "-"
-                            : label === "Kecamatan"
-                            ? lokasi?.district ?? "-"
-                            : label === "Kota"
-                            ? lokasi?.regency ?? "-"
-                            : label === "Negara"
-                            ? "Indonesia"
-                            : ""
+                              ? (lokasi?.long ?? "-")
+                              : label === "Kecamatan"
+                                ? (lokasi?.district ?? "-")
+                                : label === "Kota"
+                                  ? (lokasi?.regency ?? "-")
+                                  : label === "Negara"
+                                    ? "Indonesia"
+                                    : ""
                         }
                         className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500"
                       />
                     </div>
-                  )
+                  ),
                 )}
               </div>
               <button
@@ -706,7 +706,7 @@ export default function CreateNews() {
                       style={{
                         width: `${Math.max(
                           widthRefs.current[index]?.offsetWidth || 140,
-                          140
+                          140,
                         )}px`,
                       }}
                       className={`px-4 py-2 border rounded-full shadow-sm text-slate-700 ${
