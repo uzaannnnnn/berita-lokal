@@ -3,12 +3,18 @@ import Cards from "./Cards";
 import SkeletonCards from "./skeleton/SkeletonCards";
 import Pagination from "./Pagination";
 import { News } from "../../../types/News";
-import { User } from "../../../types/User";
+
+interface UserData {
+  id: string;
+  name: string;
+  role: string;
+  image: string;
+}
 
 interface BeritaTertundaProps {
   newsData: News[];
   isLoading: boolean;
-  user: User;
+  user: UserData | null;
   showUpdate?: boolean;
   showDelete?: boolean;
   showApprove?: boolean;
