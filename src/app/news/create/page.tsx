@@ -9,6 +9,7 @@ import useSubmitNews from "../../../../utils/hook/useSubmitNews";
 import { useRouter } from "next/navigation";
 import RichTextEditor from "../../vendor/RichTextEditor";
 import ImageInput from "../../components/ImageInput";
+import { LokasiType } from "../../../../types/LokasiType";
 
 interface NewsFormData {
   kategori: string;

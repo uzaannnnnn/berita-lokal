@@ -1,4 +1,4 @@
-interface LokasiType {
+export interface LokasiType {
   lat: number;
   long: number;
   district: string;
