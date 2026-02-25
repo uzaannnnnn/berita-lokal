@@ -1,16 +1,21 @@
 import mongoose, { Schema } from "mongoose";
 import { Notification } from "../../types/Notification";
 
-const notificationSchema = new Schema<Notification>({
-  user_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
-  status: {
-    type: String,
-    enum: ["approved", "pending", "rejected"],
-    required: true,
+const notificationSchema = new Schema<Notification>(
+  {
+    user_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    status: {
+      type: String,
+      enum: ["approved", "pending", "rejected"],
+      required: true,
+    },
+    message: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now },
   },
-  message: { type: String, required: true },
-  timestamp: { type: Date, default: Date.now },
-});
+  {
+    versionKey: false,
+  },
+);
 
 const NotificationModel =
   mongoose.models.Notification ||
