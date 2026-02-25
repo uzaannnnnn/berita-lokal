@@ -24,8 +24,7 @@ const DashboardUser: React.FC<DashboardProps> = ({ user }) => {
     "pending",
     "",
     "",
-    user?.id,
-    false,
+    user?.id
   );
 
   const { notifications, isLoading: isNotifLoading } = useFetchNotif(user?.id!);

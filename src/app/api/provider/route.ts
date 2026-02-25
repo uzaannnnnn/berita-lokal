@@ -22,14 +22,6 @@ const NEWSAPI_API_KEY = process.env.NEWS_API_KEY;
 const authorId = process.env.NEWS_API_AUTHORID;
 const NEWSAPI_LANGUAGE = process.env.NEWS_API_LANGUAGE;
 
-const defaultLocation = {
-  lat: -6.9986312,
-  long: 107.8308232,
-  district: "Cicalengka Wetan",
-  regency: "Bandung",
-  country: "Indonesia",
-};
-
 export async function POST(req: NextRequest) {
   try {
     // Autentikasi pengguna
@@ -62,11 +54,16 @@ export async function POST(req: NextRequest) {
       const categoryArticles = [];
       const allImages = new Set();
       for (const article of data.articles) {
+        const rawContent = (article.content || article.description || "").trim();
+        const cleanedContent = rawContent
+          .replace(/\s*\[\+\d+\s+chars\]\s*$/i, "")
+          .trim();
+
         if (
           article.title &&
           article.publishedAt &&
           article.urlToImage &&
-          article.content &&
+          cleanedContent &&
           article.url &&
           !allTitles.has(article.title) &&
           !allImages.has(article.urlToImage)
@@ -76,21 +73,13 @@ export async function POST(req: NextRequest) {
           categoryArticles.push({
             title: article.title,
             title_seo: formatForUrl(article.title),
-            content: article.content,
+            content: cleanedContent,
             image: article.urlToImage,
             author: authorId,
             url: article.url,
-            location: defaultLocation,
             category: category,
             type: "provider",
-            tags: article.tags || [category],
             status: "approved",
-            ratings: {
-              totalStars: 0,
-              totalRatings: 0,
-              userRatings: [],
-            },
-            views: 0,
           });
         }
         if (categoryArticles.length >= 4) break;

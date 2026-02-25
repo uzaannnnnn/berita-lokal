@@ -1,5 +1,4 @@
 import { Document, ObjectId } from "mongoose";
-import { Preferences } from "./Preferences";
 
 export interface User extends Document {
   _id: ObjectId;
@@ -7,9 +6,7 @@ export interface User extends Document {
   email: string;
   password: string;
   image: string;
-  profession: string;
   role: "admin" | "user" | "provider";
-  preferences: Preferences;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,4 +1,3 @@
-import { FiEye } from "react-icons/fi";
 import { formatForUrl } from "../../../utils/format/url.format";
 import { News } from "../../../types/News";
 import useApproveNews from "../../../utils/hook/useApproveNews";
@@ -109,10 +108,6 @@ const Cards: React.FC<CardsProps> = ({
                 </h2>
                 <div className="flex justify-between items-center text-slate-500 mb-2 text-sm">
                   <span>{relativeTime}</span>
-                  <div className="flex items-center gap-1">
-                    <FiEye className="text-lg" />
-                    <span>{item.views}</span>
-                  </div>
                 </div>
                 {showActions && (
                   <p

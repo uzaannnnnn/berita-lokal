@@ -2,11 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { News } from "../../types/News";
 
-interface Location {
-  district: string;
-  regency: string;
-}
-
 const fetchNews = async ({
   limit,
   status,
@@ -46,13 +41,13 @@ const useFetchNews = (
   category?: string,
   role?: string,
   id?: string,
-  fetchLocation?: boolean,
   sortBy?: string
 ) => {
   const {
     data: newsData,
     error,
     isLoading,
+    refetch,
   } = useQuery({
     queryKey: ["news", limit, status, category, role, id, sortBy],
     queryFn: () => fetchNews({ limit, status, category, role, id, sortBy }),
@@ -60,7 +55,7 @@ const useFetchNews = (
     refetchOnWindowFocus: false,
   });
 
-  return { newsData: newsData || [], error, isLoading };
+  return { newsData: newsData || [], error, isLoading, refetch };
 };
 
 export default useFetchNews;

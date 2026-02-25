@@ -25,6 +25,12 @@ export default function Detail() {
     return <div>News not found.</div>;
   }
 
+  const truncatedSuffixPattern = /(\s*\[\+\d+\s+chars\]\s*|\s*…\s*|\s*\.\.\.\s*)$/i;
+  const isProviderExcerpt = truncatedSuffixPattern.test(newsDetail.content);
+  const displayContent = newsDetail.content
+    .replace(truncatedSuffixPattern, "")
+    .trim();
+
   const authorImage =
     author?.image && author.image.startsWith("http")
       ? author.image
@@ -65,9 +71,7 @@ export default function Detail() {
                     <h2 className="text-sm font-semibold text-slate-900">
                       {author?.name}
                     </h2>
-                    <p className="text-xs text-slate-500">
-                      {author?.profession || "Penulis"}
-                    </p>
+                    <p className="text-xs text-slate-500">Penulis</p>
                   </div>
                 </div>
 
@@ -93,8 +97,24 @@ export default function Detail() {
 
             <div className="mt-8 rounded-[24px] border border-white/70 bg-white/70 px-6 py-6 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.4)] backdrop-blur">
               <div className="text-slate-700 whitespace-pre-line leading-relaxed">
-                <NewsDetail content={newsDetail.content} />
+                <NewsDetail content={displayContent} />
               </div>
+              {newsDetail.url && (
+                <p className="mt-4 text-sm text-slate-600">
+                  {isProviderExcerpt
+                    ? "Konten dari provider terbatas. Baca lengkap di "
+                    : "Sumber asli berita: "}
+                  <a
+                    href={String(newsDetail.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-emerald-700 underline underline-offset-2"
+                  >
+                    sumber asli
+                  </a>
+                  .
+                </p>
+              )}
             </div>
           </div>
 

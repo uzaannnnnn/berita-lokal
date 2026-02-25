@@ -11,6 +11,11 @@ import Pagination from "../../Pagination";
 const ApprovedProvider: React.FC<DashboardProps> = ({ user }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isPullingNews, setIsPullingNews] = useState(false);
+  const [pullResultMessage, setPullResultMessage] = useState<string | null>(
+    null
+  );
+  const [pullErrorMessage, setPullErrorMessage] = useState<string | null>(null);
   const pathname = usePathname();
   const { logout, isLoading: loading } = useAuth();
   const profileImageSrc = user?.image?.startsWith("http")
@@ -20,7 +25,7 @@ const ApprovedProvider: React.FC<DashboardProps> = ({ user }) => {
     await logout();
   };
 
-  const { newsData, isLoading } = useFetchNews(
+  const { newsData, isLoading, refetch } = useFetchNews(
     1000,
     "approved",
     "",
@@ -38,6 +43,38 @@ const ApprovedProvider: React.FC<DashboardProps> = ({ user }) => {
   useEffect(() => {
     setCurrentPage(1);
   }, [newsData.length]);
+
+  const handlePullNews = async () => {
+    setIsPullingNews(true);
+    setPullResultMessage(null);
+    setPullErrorMessage(null);
+
+    try {
+      const res = await fetch("/api/provider", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || "Gagal menarik berita dari provider.");
+      }
+
+      setPullResultMessage(
+        data.message || "Berhasil menarik berita dari provider."
+      );
+
+      await refetch();
+    } catch (error) {
+      setPullErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Terjadi kesalahan saat menarik berita."
+      );
+    } finally {
+      setIsPullingNews(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbfa,_#fdf6f1,_#f5f8ff)] text-slate-900">
@@ -189,8 +226,22 @@ const ApprovedProvider: React.FC<DashboardProps> = ({ user }) => {
               <span className="bg-secondary text-emerald-700 px-4 py-2 rounded-full font-semibold uppercase tracking-[0.2em] text-xs">
                 approved
               </span>
+              <button
+                type="button"
+                onClick={handlePullNews}
+                disabled={isPullingNews}
+                className="rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isPullingNews ? "Menarik..." : "Tarik Berita"}
+              </button>
             </div>
           </div>
+          {pullResultMessage && (
+            <p className="mt-3 text-sm text-emerald-700">{pullResultMessage}</p>
+          )}
+          {pullErrorMessage && (
+            <p className="mt-3 text-sm text-rose-600">{pullErrorMessage}</p>
+          )}
           <div className="mt-6">
             {isLoading ? (
               <SkeletonCards />

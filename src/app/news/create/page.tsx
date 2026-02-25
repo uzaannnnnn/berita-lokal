@@ -1,15 +1,13 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { useState, ChangeEvent, FormEvent, useEffect, useRef } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import { useAuth } from "../../../../utils/hook/useAuth";
 import { FiLogOut } from "react-icons/fi";
 import useUserData from "../../../../utils/hook/useUserData";
-import useSessionStorage from "../../../../utils/hook/useSessionStorage";
 import useSubmitNews from "../../../../utils/hook/useSubmitNews";
 import { useRouter } from "next/navigation";
 import RichTextEditor from "../../vendor/RichTextEditor";
 import ImageInput from "../../components/ImageInput";
-import { LokasiType } from "../../../../types/LokasiType";
 
 interface NewsFormData {
   kategori: string;
@@ -25,14 +23,12 @@ interface Errors {
   gambarUrl?: string;
   namaKomunitas?: string;
   kontenBerita?: string;
-  lokasi?: string;
-  tags?: string;
 }
 
 export default function CreateNews() {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [dropdownOpen, setDropdownOpen] = useState<boolean>(false);
-  const [formData, setFormData] = useSessionStorage<NewsFormData>("formData", {
+  const [formData, setFormData] = useState<NewsFormData>({
     kategori: "",
     namaKomunitas: "",
     judul: "",
@@ -40,18 +36,12 @@ export default function CreateNews() {
     kontenBerita: "",
   });
   const router = useRouter();
-  const [lokasi, setLokasi] = useState<LokasiType | null>(null);
-  const [loadingLocation, setLoading] = useState<boolean>(false);
-  const [tags, setTags] = useState<string[]>([""]);
-  const inputRefs = useRef<HTMLInputElement[]>([]);
-  const widthRefs = useRef<HTMLSpanElement[]>([]);
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isFormValid, setIsFormValid] = useState(false);
   const pathname = usePathname();
   const { logout, isLoading: loading } = useAuth();
   const { userData: user } = useUserData();
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [imageMode, setImageMode] = useState<"url" | "file">("url");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -66,14 +56,6 @@ export default function CreateNews() {
   const handleLogout = async () => {
     await logout();
   };
-
-  useEffect(() => {
-    const storedData = sessionStorage.getItem("formData");
-    if (storedData) {
-      console.log("Data loaded from sessionStorage:", JSON.parse(storedData));
-      setFormData(JSON.parse(storedData));
-    }
-  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Errors = {};
@@ -114,10 +96,6 @@ export default function CreateNews() {
         "Konten berita harus terdiri dari minimal 10 kata dan maksimal 1000 kata.";
     }
 
-    if (!lokasi) {
-      newErrors.lokasi = "Lokasi harus diatur sebelum mengirim berita.";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -125,14 +103,7 @@ export default function CreateNews() {
   useEffect(() => {
     const isValid = validateForm();
     setIsFormValid(isValid);
-  }, [formData, lokasi, imageMode, imageFile]);
-
-  useEffect(() => {
-    const storedLocation = localStorage.getItem("lokasi");
-    if (storedLocation) {
-      setLokasi(JSON.parse(storedLocation));
-    }
-  }, []);
+  }, [formData, imageMode, imageFile]);
 
   const normalizeImageUrl = (value: string) =>
     value.startsWith("http") ? value : `https://${value}`;
@@ -167,11 +138,7 @@ export default function CreateNews() {
       gambarUrl: true,
       namaKomunitas: true,
       kontenBerita: true,
-      lokasi: true,
-      tags: true,
     });
-
-    const cleanedTags = tags.filter((tag) => tag.trim() !== "");
 
     try {
       let imageUrl = normalizeImageUrl(formData.gambarUrl);
@@ -192,13 +159,7 @@ export default function CreateNews() {
         category: formData.kategori,
         image: imageUrl,
         content: formData.kontenBerita,
-        location: lokasi
-          ? lokasi
-          : { lat: 0, long: 0, district: "", regency: "", country: "" },
-        tags: cleanedTags,
       });
-
-      sessionStorage.removeItem("formData");
 
       setFormData({
         judul: "",
@@ -237,143 +198,6 @@ export default function CreateNews() {
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
-
-  const handleAmbilLokasi = () => {
-    markTouched("lokasi");
-    setLoading(true);
-    setErrorMessage(null);
-
-    const handleError = (message: string) => {
-      setErrorMessage(message);
-      setLoading(false);
-    };
-
-    const fetchLocationData = async (latitude: number, longitude: number) => {
-      try {
-        const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=18&addressdetails=1`;
-        const response = await fetch(url, {
-          headers: {
-            "User-Agent": "PortalBeritaLokal/1.0 muhamadfarhan.inc@gmail.com",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error("Gagal mengambil data lokasi.");
-        }
-
-        const data = await response.json();
-        if (data && data.address) {
-          const address = data.address;
-
-          const district =
-            address.village ||
-            address.town ||
-            address.city ||
-            address.suburb ||
-            "Unknown";
-
-          const regency =
-            address.county ||
-            address.state_district ||
-            address.city ||
-            "Unknown";
-
-          const country = address.country || "Unknown";
-
-          const newLocation = {
-            lat: latitude,
-            long: longitude,
-            district,
-            regency,
-            country,
-          };
-          setLokasi(newLocation);
-          localStorage.setItem("lokasi", JSON.stringify(newLocation));
-        } else {
-          handleError("Lokasi tidak ditemukan.");
-        }
-      } catch (error) {
-        handleError("Terjadi kesalahan saat mengambil lokasi.");
-        console.error("Error fetching location:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!navigator.permissions) {
-      handleError("Browser tidak mendukung API Permissions.");
-      return;
-    }
-
-    navigator.permissions
-      .query({ name: "geolocation" })
-      .then((permissionStatus) => {
-        if (permissionStatus.state === "denied") {
-          handleError(
-            "Izin lokasi ditolak. Silakan aktifkan izin lokasi di browser.",
-          );
-        } else if (["granted", "prompt"].includes(permissionStatus.state)) {
-          if (!navigator.geolocation) {
-            handleError("Geolocation is not supported by this browser.");
-            return;
-          }
-
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const { latitude, longitude } = position.coords;
-              await fetchLocationData(latitude, longitude);
-            },
-            (error) => {
-              handleError("Error getting location: " + error.message);
-            },
-            {
-              enableHighAccuracy: true,
-              timeout: 10000,
-              maximumAge: 0,
-            },
-          );
-        }
-      });
-  };
-
-  const handleTagChange = (index: number, value: string) => {
-    if (value.includes(" ")) return;
-
-    const trimmedValue = value.trim();
-
-    if (tags.includes(trimmedValue) && tags.indexOf(trimmedValue) !== index) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        tags: "Tag ini sudah ada, coba tag lain.",
-      }));
-      return;
-    }
-
-    setErrors((prevErrors) => {
-      const { tags, ...rest } = prevErrors;
-      return rest;
-    });
-
-    const newTags = [...tags];
-    newTags[index] = trimmedValue;
-    setTags(newTags);
-  };
-
-  const handleAddTag = (index: number) => {
-    if (tags[index] && index === tags.length - 1) {
-      setTags([...tags, ""]);
-    }
-    setTimeout(() => {
-      if (inputRefs.current[index + 1]) {
-        inputRefs.current[index + 1].focus();
-      }
-    }, 0);
-  };
-
-  const handleClearTags = () => {
-    setTags([""]);
-    inputRefs.current[0]?.focus();
-  };
 
   return (
     <div className="flex min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbfa,_#fdf6f1,_#f5f8ff)] text-slate-900">
@@ -613,120 +437,6 @@ export default function CreateNews() {
                   {errors.kontenBerita}
                 </p>
               )}
-            </div>
-
-            <div className="mb-4">
-              <label className="block text-sm font-semibold text-slate-700 mb-3">
-                Lokasi Saat Ini<span className="text-red-500">*</span>
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                {["Latitude", "Longitude", "Kecamatan", "Kota", "Negara"].map(
-                  (label, index) => (
-                    <div key={index}>
-                      <label className="block font-medium text-xs text-slate-500 mb-1">
-                        {label}
-                      </label>
-                      <input
-                        type="text"
-                        disabled
-                        value={
-                          label === "Latitude"
-                            ? (lokasi?.lat ?? "-")
-                            : label === "Longitude"
-                              ? (lokasi?.long ?? "-")
-                              : label === "Kecamatan"
-                                ? (lokasi?.district ?? "-")
-                                : label === "Kota"
-                                  ? (lokasi?.regency ?? "-")
-                                  : label === "Negara"
-                                    ? "Indonesia"
-                                    : ""
-                        }
-                        className="mt-1 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-500"
-                      />
-                    </div>
-                  ),
-                )}
-              </div>
-              <button
-                onClick={handleAmbilLokasi}
-                disabled={lokasi !== null}
-                className={`bg-emerald-600 text-white px-4 py-2 mt-4 mb-2 rounded-full shadow-sm text-sm font-semibold transition duration-200 ${
-                  lokasi
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-200"
-                }`}
-              >
-                {loadingLocation
-                  ? "Mengambil lokasi.."
-                  : "Ambil Lokasi Saat Ini"}
-              </button>
-              {touched.lokasi && errors.lokasi && (
-                <p className="text-red-600 text-sm">{errors.lokasi}</p>
-              )}
-              {errorMessage && (
-                <p className="text-red-800 text-base">{errorMessage}</p>
-              )}
-            </div>
-            <div className="mb-14">
-              <label className="block text-sm font-semibold text-slate-700 mb-3">
-                Tag <span className="text-green-500 text-sm">(Optional)</span>
-              </label>
-              <div className="flex flex-wrap gap-5">
-                {tags.map((tag, index) => (
-                  <div key={index} className="relative">
-                    <span
-                      ref={(el) => {
-                        if (el) widthRefs.current[index] = el;
-                      }}
-                      className="absolute invisible whitespace-pre"
-                      style={{ padding: "8px" }}
-                    >
-                      {tag ||
-                        (index === 0 ? "Masukkan tag" : "Masukkan tag lainnya")}
-                    </span>
-                    <input
-                      ref={(el) => {
-                        if (el) inputRefs.current[index] = el;
-                      }}
-                      type="text"
-                      disabled={index < tags.length - 1}
-                      value={tag}
-                      placeholder={
-                        index === 0 ? "Masukkan tag" : "Masukkan tag lain"
-                      }
-                      onChange={(e) => handleTagChange(index, e.target.value)}
-                      onBlur={() => markTouched("tags")}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddTag(index);
-                        }
-                      }}
-                      style={{
-                        width: `${Math.max(
-                          widthRefs.current[index]?.offsetWidth || 140,
-                          140,
-                        )}px`,
-                      }}
-                      className={`px-4 py-2 border rounded-full shadow-sm text-slate-700 ${
-                        index < tags.length - 1
-                          ? "bg-slate-200 border-slate-300"
-                          : ""
-                      }`}
-                    />
-                  </div>
-                ))}
-              </div>
-              {touched.tags && errors.tags && (
-                <p className="text-red-600 text-sm mt-1">{errors.tags}</p>
-              )}
-              <button
-                onClick={handleClearTags}
-                className="bg-rose-600 text-white px-4 py-2 mt-4 rounded-full shadow-sm text-sm font-semibold hover:bg-rose-700 focus:ring-2 focus:ring-rose-200 transition duration-200"
-              >
-                Clear Tags
-              </button>
             </div>
 
             <button

@@ -3,8 +3,13 @@ import { connectToDB } from "../../../../utils/lib/mongoose";
 import NewsModel from "../../../../utils/model/News";
 import UserModel from "../../../../utils/model/User";
 import { News } from "../../../../types/News";
+import { formatForUrl } from "../../../../utils/format/url.format";
 
 export const dynamic = "force-dynamic";
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,9 +36,7 @@ export async function GET(req: NextRequest) {
           name: 1,
           email: 1,
           image: 1,
-          profession: 1,
           role: 1,
-          "preferences.location": 1,
         }
       ).lean();
       if (!user) {
@@ -45,8 +48,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ user }, { status: 200 });
     }
 
-    const news = (await NewsModel.findOne(
-      { title_seo: title },
+    const normalizedTitle = decodeURIComponent(title || "").trim().toLowerCase();
+    const seoCandidate = formatForUrl(normalizedTitle.replace(/-/g, " "));
+    const keywordRegex = normalizedTitle
+      .split("-")
+      .filter(Boolean)
+      .map((word) => escapeRegex(word))
+      .join(".*");
+
+    let news = (await NewsModel.findOne(
+      { title_seo: normalizedTitle },
       {
         _id: 1,
         title: 1,
@@ -57,30 +68,70 @@ export async function GET(req: NextRequest) {
         updatedAt: 1,
         title_seo: 1,
         author: 1,
-        location: 1,
         image: 1,
+        url: 1,
       }
     ).lean()) as News | null;
+
+    if (!news) {
+      news = (await NewsModel.findOne(
+        { title_seo: seoCandidate },
+        {
+          _id: 1,
+          title: 1,
+          content: 1,
+          category: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          title_seo: 1,
+          author: 1,
+          image: 1,
+          url: 1,
+        }
+      ).lean()) as News | null;
+    }
+
+    if (!news && keywordRegex) {
+      news = (await NewsModel.findOne(
+        { title: { $regex: new RegExp(keywordRegex, "i") } },
+        {
+          _id: 1,
+          title: 1,
+          content: 1,
+          category: 1,
+          status: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          title_seo: 1,
+          author: 1,
+          image: 1,
+          url: 1,
+        }
+      ).lean()) as News | null;
+    }
 
     if (!news) {
       return NextResponse.json({ message: "News not found" }, { status: 404 });
     }
 
-    const author = await UserModel.findById(news.author, {
+    const authorDoc = await UserModel.findById(news.author, {
       _id: 1,
       name: 1,
       email: 1,
       image: 1,
-      profession: 1,
       role: 1,
     }).lean();
 
-    if (!author) {
-      return NextResponse.json(
-        { message: "Author not found" },
-        { status: 404 }
-      );
-    }
+    const author =
+      authorDoc ||
+      ({
+        _id: news.author,
+        name: "KabarLokal",
+        email: "",
+        image: "user.png",
+        role: "provider",
+      } as const);
 
     const moreNews = await NewsModel.find(
       { author: news.author, _id: { $ne: news._id } },

@@ -1,21 +1,11 @@
 import { useState } from "react";
 // import Cookies from "js-cookie";
 
-interface Location {
-  lat: number;
-  long: number;
-  district: string;
-  regency: string;
-  country: string;
-}
-
 interface FormData {
   title: string;
   content: string;
   image: string;
-  location: Location;
   category: string;
-  tags: string[];
 }
 
 interface FormDataUpdate {

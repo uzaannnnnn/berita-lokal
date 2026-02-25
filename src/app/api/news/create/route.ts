@@ -15,37 +15,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized." }, { status: 403 });
     }
 
-    const { title, content, image, location, category, tags, url } =
-      await req.json();
+    const { title, content, image, category, url } = await req.json();
 
-    if (!title || !content || !image || !location || !category) {
+    if (!title || !content || !image || !category) {
       return NextResponse.json(
         {
-          error: "Title, Content, Image, Location, and Category are required.",
+          error: "Title, Content, Image, and Category are required.",
         },
         { status: 400 }
       );
     }
 
     const title_seo = formatForUrl(title);
-
-    if (tags && !Array.isArray(tags)) {
-      return NextResponse.json(
-        { error: "Tags must be an array." },
-        { status: 400 }
-      );
-    }
-
-    const { lat, long, district, regency, country } = location;
-    if (!lat || !long || !district || !regency || !country) {
-      return NextResponse.json(
-        {
-          error:
-            "Location must include lat, long, district, regency, and country.",
-        },
-        { status: 400 }
-      );
-    }
 
     const existingNews = await NewsModel.findOne({ title });
     if (existingNews) {
@@ -91,10 +72,8 @@ export async function POST(req: NextRequest) {
       content,
       image,
       author: user.id,
-      location: { lat, long, district, regency, country },
       category,
       type: user.role,
-      tags: tags,
       url: url,
       status,
     });

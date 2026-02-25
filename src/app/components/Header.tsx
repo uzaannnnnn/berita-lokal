@@ -178,7 +178,7 @@ export default function Header() {
                             {news.title}
                           </h3>
                           <p className="text-slate-500 text-sm">
-                            {news.location.district} - {news.category} -{" "}
+                            {news.category} -{" "}
                             {new Date(news.updatedAt).toLocaleDateString()}
                           </p>
                         </div>

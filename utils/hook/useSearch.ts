@@ -7,10 +7,6 @@ interface News {
   image: string;
   updatedAt: string;
   category: string;
-  location: {
-    district: string;
-    regency: string;
-  };
 }
 
 export const useSearch = () => {

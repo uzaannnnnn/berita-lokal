@@ -55,10 +55,6 @@ export const useAuth = (): UseAuthReturn => {
           return "Password must be provided to confirm.";
         }
         break;
-      case "profession":
-        if (value && !/^[a-zA-Z\s]+$/.test(value))
-          return "Profession should contain only letters and spaces";
-        break;
       default:
         break;
     }
@@ -88,41 +84,6 @@ export const useAuth = (): UseAuthReturn => {
       const responseData = await res.json();
       console.log("Login successful, responseData:", responseData);
       sessionStorage.setItem("alertMessage", "Login berhasil");
-      const storedLocation = localStorage.getItem("lokasi");
-      console.log("Stored location:", storedLocation);
-
-      if (storedLocation) {
-        const lokasi = JSON.parse(storedLocation);
-        const userId = responseData.user.id;
-        const token = responseData.token;
-
-        const checkLocationResponse = await fetch(`/api/authors?id=${userId}`);
-        const data = await checkLocationResponse.json();
-
-        if (
-          data.user.preferences.location.district !== lokasi.district ||
-          data.user.preferences.location.regency !== lokasi.regency
-        ) {
-          const updateLocationResponse = await fetch(`/api/authors/location`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              userId,
-              location: {
-                district: lokasi.district,
-                regency: lokasi.regency,
-              },
-            }),
-          });
-
-          if (!updateLocationResponse.ok) {
-            throw new Error("Failed to update location in database");
-          }
-        }
-      }
 
       console.log("Navigating to dashboard...");
       router.push("/dashboard");

@@ -23,8 +23,6 @@ export async function GET(req: NextRequest) {
       : null;
     const limit = parseInt(searchParams.get("limit") ?? "0");
     const skip = parseInt(searchParams.get("skip") ?? "0");
-    const district = searchParams.get("district");
-    const regency = searchParams.get("regency");
     const authorId = searchParams.get("authorId");
     const id = searchParams.get("id");
     const sortBy = searchParams.get("sortBy") || "latest";
@@ -80,7 +78,6 @@ export async function GET(req: NextRequest) {
         createdAt: 1,
         updatedAt: 1,
         author: 1,
-        location: 1,
         image: 1,
       },
     });

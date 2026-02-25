@@ -1,7 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
 import Header from "../components/Header";
-import Lokasi from "../components/Lokasi";
 import Cards from "../components/Cards";
 import useFetchNews from "../../../utils/hook/useFetchNews";
 import SkeletonCards from "../components/skeleton/SkeletonCards";
@@ -48,7 +47,6 @@ export default function Category() {
 
   return (
     <div className="w-full max-w-full min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbfa,_#fdf6f1,_#f5f8ff)]">
-      <Lokasi />
       <Header />
       <div className="max-w-[1100px] mx-auto px-4 lg:px-0">
         <div className="mt-6 mb-4 rounded-[24px] border border-white/70 bg-white/70 px-6 py-6 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.4)] backdrop-blur">

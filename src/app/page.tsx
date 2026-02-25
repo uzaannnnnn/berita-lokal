@@ -2,7 +2,6 @@
 import Banner from "./components/Banner";
 import Cards from "./components/Cards";
 import Header from "./components/Header";
-import Lokasi from "./components/Lokasi";
 import SkeletonBanner from "./components/skeleton/SkeletonBanner";
 import SkeletonCards from "./components/skeleton/SkeletonCards";
 import useFetchNews from "../../utils/hook/useFetchNews";
@@ -15,7 +14,6 @@ export default function Home() {
     "",
     "",
     "",
-    false,
     "latest"
   );
 
@@ -32,7 +30,6 @@ export default function Home() {
 
   return (
     <div className="w-full max-w-full min-h-screen bg-[radial-gradient(circle_at_top,_#f8fbfa,_#fdf6f1,_#f5f8ff)]">
-      <Lokasi />
       <AlertManager path="/" />
       <Header />
       {isLoading ? <SkeletonBanner /> : <Banner slides={slides} />}
